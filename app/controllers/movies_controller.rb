@@ -12,9 +12,19 @@ class MoviesController < ApplicationController
 
   def index
     @movies = Movie.all
+    @all_ratings = Movie.uniq.pluck(:rating)
+    
     sortID = params[:sort] # checks to see if the index is changed
-    if(!sortID.nil?)
-      @movies = Movie.order(sortID)
+    if sortID == 'title'
+      @title_header = 'hilite'
+      @movies = Movie.order('title')
+    elsif sortID == 'release_date'
+      @release_header = 'hilite'
+      @movies = Movie.order('release_date')
+    end
+    
+    if(params[:commit] == 'Refresh')
+      @movies = Movie.where(rating: params[:ratings].keys)
     end
   end
 
