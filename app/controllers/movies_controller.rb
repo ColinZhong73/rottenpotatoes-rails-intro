@@ -13,19 +13,29 @@ class MoviesController < ApplicationController
   def index
     @movies = Movie.all
     @all_ratings = Movie.uniq.pluck(:rating)
+    if(params[:clear] == 'All') # Added so that session ID's can be cleared
+      session[:sort] = nil
+      session[:ratings] = nil
+    end
+
+    sortID = params[:sort].nil? ? session[:sort] : params[:sort]
+    ratingsIDs = params[:ratings].nil? ? session[:ratings] : params[:ratings]
     
-    sortID = params[:sort] # checks to see if the index is changed
     if sortID == 'title'
       @title_header = 'hilite'
-      @movies = Movie.order('title')
+      @movies = ratingsIDs.present? ? Movie.order(sortID).where(rating: ratingsIDs.keys) : Movie.order(sortID)
+      session[:sort] = sortID
+      session[:ratings] = ratingsIDs if ratingsIDs.present?
     elsif sortID == 'release_date'
       @release_header = 'hilite'
-      @movies = Movie.order('release_date')
+      @movies = ratingsIDs.present? ? Movie.order(sortID).where(rating: ratingsIDs.keys) : Movie.order(sortID)
+      session[:sort] = sortID
+      session[:ratings] = ratingsIDs if ratingsIDs.present?
+    elsif ratingsIDs.present?
+      @movies = Movie.where(rating: ratingsIDs.keys)
+      session[:ratings] = ratingsIDs
     end
     
-    if(params[:commit] == 'Refresh')
-      @movies = Movie.where(rating: params[:ratings].keys)
-    end
   end
 
   def new
